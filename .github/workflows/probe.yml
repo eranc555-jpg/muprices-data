@@ -1,0 +1,11 @@
+name: probe
+on: workflow_dispatch
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check which sites answer from the cloud
+        run: |
+          for u in https://prices.shufersal.co.il/ https://url.publishedprices.co.il/login https://laibcatalog.co.il/ https://api.priceil.dev/stores/chains; do
+            echo "$u -> $(curl -s -o /dev/null -w '%{http_code}' -m 20 "$u")"
+          done

@@ -1,0 +1,20 @@
+name: probe2
+on: workflow_dispatch
+jobs:
+  probe2:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Shufersal file list
+        run: |
+          curl -s -m 40 -A "Mozilla/5.0" "https://prices.shufersal.co.il/FileObject/UpdateCategory?catID=2&storeId=0&sort=Time&order=Desc&page=1" -o s.html -w "HTTP %{http_code}\n" || true
+          echo "PriceFull mentions: $(grep -o 'PriceFull' s.html | wc -l)"
+      - name: publishedprices logins
+        run: |
+          for U in RamiLevi yohananof osherad Victory; do
+            rm -f cj
+            curl -s -m 30 -c cj -A "Mozilla/5.0" https://url.publishedprices.co.il/login -o l.html || true
+            T=$(grep -oP '(?<=csrftoken" content=")[^"]+|(?<=name="csrftoken" value=")[^"]+' l.html | head -1 || true)
+            C=$(curl -s -m 30 -b cj -c cj -A "Mozilla/5.0" -o /dev/null -w '%{http_code}' -d "username=$U" -d "password=" -d "csrftoken=$T" https://url.publishedprices.co.il/login/user || true)
+            D=$(curl -s -m 40 -b cj -A "Mozilla/5.0" "https://url.publishedprices.co.il/file/json/dir?sEcho=1&iDisplayStart=0&iDisplayLength=20&cd=/" || true)
+            echo "$U login=$C token_len=${#T} PriceFull_mentions=$(echo "$D" | grep -o 'PriceFull' | wc -l)"
+          done
